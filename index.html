@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Оценка направлений</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary-blue: #0f5be8;
+      --primary-dark-blue: #0b45b5;
+      --text-main: #111827;
+      --text-muted: #596375;
+      --bg-page: #f4f6fa;
+      --bg-card: #ffffff;
+      --border-color: #e2e8f0;
+      --radius-pill: 9999px;
+      --radius-card: 28px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background-color: var(--bg-page);
+      color: var(--text-main);
+      display: flex;
+      justify-content: center;
+      min-height: 100vh;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 480px;
+      background: var(--bg-card);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+    }
+
+    .banner {
+      background: linear-gradient(135deg, #0052cc 0%, #0066ff 100%);
+      color: #ffffff;
+      margin: 20px 16px 8px;
+      padding: 16px 20px;
+      border-radius: 18px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: relative;
+    }
+
+    .banner-text {
+      font-size: 14px;
+      font-weight: 600;
+      line-height: 1.35;
+      max-width: 80%;
+    }
+
+    .banner-close {
+      background: rgba(255, 255, 255, 0.2);
+      border: none;
+      color: #fff;
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      cursor: pointer;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    main {
+      padding: 20px 20px 40px;
+      flex-grow: 1;
+    }
+
+    h1 {
+      font-size: 28px;
+      line-height: 1.15;
+      font-weight: 800;
+      color: var(--text-main);
+      margin-bottom: 14px;
+      letter-spacing: -0.5px;
+    }
+
+    .description {
+      font-size: 15px;
+      line-height: 1.45;
+      color: var(--text-muted);
+      margin-bottom: 28px;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: var(--text-main);
+    }
+
+    .optional-tag {
+      font-size: 12px;
+      font-weight: 400;
+      color: var(--text-muted);
+    }
+
+    select, input[type="text"], textarea {
+      width: 100%;
+      padding: 14px 16px;
+      font-size: 15px;
+      border: 1.5px solid var(--border-color);
+      border-radius: 14px;
+      outline: none;
+      background-color: #fbfcfe;
+      transition: border-color 0.2s;
+    }
+
+    select:focus, input[type="text"]:focus, textarea:focus {
+      border-color: var(--primary-blue);
+      background-color: #fff;
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 90px;
+    }
+
+    .rating-grid {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 6px;
+      margin-top: 4px;
+    }
+
+    .rating-btn {
+      border: 1.5px solid var(--border-color);
+      background: #fff;
+      padding: 10px 0;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      color: var(--text-main);
+    }
+
+    .rating-btn:hover {
+      background-color: #f0f5ff;
+      border-color: var(--primary-blue);
+    }
+
+    .rating-btn.active {
+      background-color: var(--primary-blue);
+      border-color: var(--primary-blue);
+      color: #fff;
+    }
+
+    .actions {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-top: 28px;
+    }
+
+    .btn {
+      width: 100%;
+      padding: 16px;
+      font-size: 16px;
+      font-weight: 600;
+      border-radius: var(--radius-pill);
+      cursor: pointer;
+      text-align: center;
+      transition: transform 0.1s ease, background-color 0.2s ease;
+      border: none;
+    }
+
+    .btn:active {
+      transform: scale(0.98);
+    }
+
+    .btn-primary {
+      background-color: var(--primary-blue);
+      color: #ffffff;
+    }
+
+    .btn-primary:hover {
+      background-color: var(--primary-dark-blue);
+    }
+
+    .btn-primary:disabled {
+      background-color: #93c5fd;
+      cursor: not-allowed;
+    }
+
+    .status-message {
+      display: none;
+      padding: 14px;
+      margin-top: 14px;
+      border-radius: 12px;
+      text-align: center;
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    .status-success {
+      background-color: #e6f7ec;
+      color: #1b7a43;
+    }
+
+    .status-error {
+      background-color: #fee2e2;
+      color: #991b1b;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <div class="banner" id="banner">
+      <div class="banner-text">Оцените качество подготовки по вашему направлению</div>
+      <button class="banner-close" onclick="document.getElementById('banner').style.display='none'">✕</button>
+    </div>
+
+    <main>
+      <h1>Обучаем востребованным и современным профессиям</h1>
+      <p class="description">Помогите нам стать лучше — оставьте обратную связь по вашей специальности.</p>
+
+      <form id="feedbackForm">
+        <!-- Список направлений (добавьте свои варианты) -->
+        <div class="form-group">
+          <label for="direction">Выберите направление *</label>
+          <select id="direction" required>
+            <option value="" disabled selected>Нажмите для выбора...</option>
+            <option value="Программирование и ИТ">Программирование и ИТ</option>
+            <option value="Робототехника и автоматизация">Робототехника и автоматизация</option>
+            <option value="Электромонтаж и схемотехника">Электромонтаж и схемотехника</option>
+            <option value="Лабораторный химический анализ">Лабораторный химический анализ</option>
+            <option value="Бизнес и администрирование">Бизнес и администрирование</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Оценка программы (от 0 до 10) *</label>
+          <input type="hidden" id="score" name="score" required>
+          <div class="rating-grid" id="ratingGrid"></div>
+        </div>
+
+        <div class="form-group">
+          <label for="fio">Ваше ФИО <span class="optional-tag">(необязательно)</span></label>
+          <input type="text" id="fio" placeholder="Иванов Иван Иванович">
+        </div>
+
+        <div class="form-group">
+          <label for="comment">Комментарий <span class="optional-tag">(необязательно)</span></label>
+          <textarea id="comment" placeholder="Что вам нравится, а что стоит улучшить?"></textarea>
+        </div>
+
+        <div class="actions">
+          <button type="submit" id="submitBtn" class="btn btn-primary">Отправить отзыв</button>
+        </div>
+
+        <div id="statusMessage" class="status-message"></div>
+      </form>
+    </main>
+  </div>
+
+  <script>
+    // ВСТАВЬТЕ СЮДА ВАШУ ССЫЛКУ ИЗ GOOGLE APPS SCRIPT:
+    const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzjb0J7HdLFMN1IVM2hozpDrHU7rU3Hugg74KBtsyK2m8B5Zl-FB0VbH-Qy5EcaeHEK/exec';
+
+    // Создание кнопок рейтинга
+    const ratingGrid = document.getElementById('ratingGrid');
+    const scoreInput = document.getElementById('score');
+
+    for (let i = 0; i <= 10; i++) {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'rating-btn';
+      btn.textContent = i;
+      btn.onclick = () => {
+        document.querySelectorAll('.rating-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        scoreInput.value = i;
+      };
+      ratingGrid.appendChild(btn);
+    }
+
+    const form = document.getElementById('feedbackForm');
+    const submitBtn = document.getElementById('submitBtn');
+    const statusMsg = document.getElementById('statusMessage');
+
+    form.addEventListener('submit', async function(e) {
+      e.preventDefault();
+
+      if (scoreInput.value === '') {
+        alert('Пожалуйста, выберите оценку от 0 до 10.');
+        return;
+      }
+
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Отправка...';
+      statusMsg.style.display = 'none';
+
+      const feedbackData = {
+        direction: document.getElementById('direction').value,
+        score: scoreInput.value,
+        fio: document.getElementById('fio').value || 'Анонимно',
+        comment: document.getElementById('comment').value || 'Без комментария',
+        date: new Date().toLocaleString('ru-RU')
+      };
+
+      try {
+        await fetch(GOOGLE_SCRIPT_URL, {
+          method: 'POST',
+          mode: 'no-cors', // Важно для запросов к Google Apps Script
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(feedbackData)
+        });
+
+        statusMsg.className = 'status-message status-success';
+        statusMsg.textContent = 'Спасибо! Ваш отзыв успешно сохранен в таблице.';
+        statusMsg.style.display = 'block';
+
+        form.reset();
+        document.querySelectorAll('.rating-btn').forEach(b => b.classList.remove('active'));
+      } catch (err) {
+        statusMsg.className = 'status-message status-error';
+        statusMsg.textContent = 'Произошла ошибка при отправке. Попробуйте еще раз.';
+        statusMsg.style.display = 'block';
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Отправить отзыв';
+      }
+    });
+  </script>
+</body>
+</html>

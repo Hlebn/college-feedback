@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Оценка направлений</title>
+  <title>Опрос по итогам занятий</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -47,49 +47,8 @@
       flex-direction: column;
     }
 
-    /* Баннер */
-    .banner {
-      background: #18223c;
-      border: 1px solid #2a3b66;
-      color: #e2e8f0;
-      margin: 16px 16px 8px;
-      padding: 14px 18px;
-      border-radius: 14px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .banner-text {
-      font-size: 13px;
-      font-weight: 500;
-      line-height: 1.35;
-      max-width: 85%;
-      color: #cbd5e1;
-    }
-
-    .banner-close {
-      background: rgba(255, 255, 255, 0.08);
-      border: none;
-      color: #94a3b8;
-      width: 24px;
-      height: 24px;
-      border-radius: 50%;
-      cursor: pointer;
-      font-size: 12px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: 0.2s;
-    }
-
-    .banner-close:hover {
-      background: rgba(255, 255, 255, 0.15);
-      color: #fff;
-    }
-
     main {
-      padding: 16px 16px 40px;
+      padding: 24px 16px 40px;
       flex-grow: 1;
     }
 
@@ -98,16 +57,16 @@
       background: var(--bg-card);
       border: 1px solid var(--border-color);
       border-radius: var(--radius-card);
-      padding: 22px 20px;
+      padding: 24px 20px;
       margin-bottom: 16px;
     }
 
     h1 {
-      font-size: 22px;
-      line-height: 1.25;
+      font-size: 20px;
+      line-height: 1.35;
       font-weight: 700;
       color: var(--text-main);
-      margin-bottom: 8px;
+      margin-bottom: 10px;
       letter-spacing: -0.3px;
     }
 
@@ -268,19 +227,14 @@
 <body>
 
   <div class="container">
-    <div class="banner" id="banner">
-      <div class="banner-text">Оцените направление</div>
-      <button class="banner-close" onclick="document.getElementById('banner').style.display='none'">✕</button>
-    </div>
-
     <main>
       <div class="header-card">
-        <h1>Обучаем востребованных специалистов</h1>
-        <p class="description">Помогите нам стать лучше — оставьте обратную связь по вашей специальности.</p>
+        <h1>Мы вместе строим наше будущее: пройди опрос по итогам военно-патриотических занятий</h1>
+        <p class="description">Помогите нам стать лучше — оставьте обратную связь по пройденному направлению.</p>
       </div>
 
       <form id="feedbackForm">
-        <!-- 1. ФИО (перемещено в начало) -->
+        <!-- 1. ФИО -->
         <div class="form-card">
           <label for="fio">Ваше ФИО <span class="optional-tag">(необязательно)</span></label>
           <input type="text" id="fio" placeholder="Иванов Иван Иванович">
@@ -291,17 +245,27 @@
           <label for="direction">Выберите направление *</label>
           <select id="direction" required>
             <option value="" disabled selected>Нажмите для выбора...</option>
-            <option value="Программирование и ИТ">Программирование и ИТ</option>
-            <option value="Робототехника и автоматизация">Робототехника и автоматизация</option>
-            <option value="Электромонтаж и схемотехника">Электромонтаж и схемотехника</option>
-            <option value="Лабораторный химический анализ">Лабораторный химический анализ</option>
-            <option value="Бизнес и администрирование">Бизнес и администрирование</option>
+            <option value="Воздушно-десантная подготовка">1. Воздушно-десантная подготовка</option>
+            <option value="Письмо солдату">2. Письмо солдату</option>
+            <option value="Разборка-сборка АК-74">3. Разборка-сборка АК-74</option>
+            <option value="ТИР">4. ТИР</option>
+            <option value="Тактическая медицина">5. Тактическая медицина</option>
+            <option value="Тактические игры">6. Тактические игры</option>
+            <option value="БПЛА">7. БПЛА</option>
+            <option value="РХБЗ">8. РХБЗ</option>
+            <option value="Инженерная подготовка">9. Инженерная подготовка</option>
+            <option value="Связь">10. Связь</option>
+            <option value="Военная типография">11. Военная типография</option>
+            <option value="КИРБ">12. КИРБ</option>
+            <option value="Партизанская деревня">13. Партизанская деревня</option>
+            <option value="Городок СВО">14. Городок СВО</option>
+            <option value="Огневая подготовка">15. Огневая подготовка</option>
           </select>
         </div>
 
         <!-- 3. Оценка от 0 до 10 -->
         <div class="form-card">
-          <label>Оценка программы (от 0 до 10) *</label>
+          <label>Оценка занятия (от 0 до 10) *</label>
           <input type="hidden" id="score" name="score" required>
           <div class="rating-grid" id="ratingGrid"></div>
         </div>
@@ -309,7 +273,7 @@
         <!-- 4. Комментарий -->
         <div class="form-card">
           <label for="comment">Комментарий <span class="optional-tag">(необязательно)</span></label>
-          <textarea id="comment" placeholder="Что вам нравится, а что стоит улучшить?"></textarea>
+          <textarea id="comment" placeholder="Что вам понравилось, а что стоит улучшить?"></textarea>
         </div>
 
         <div class="actions">
@@ -361,7 +325,7 @@
         score: scoreInput.value,
         fio: document.getElementById('fio').value || 'Анонимно',
         comment: document.getElementById('comment').value || 'Без комментария',
-        date: new Date().toLocaleString('ru-RU')
+        date: new Date().toISOString()
       };
 
       try {
@@ -373,7 +337,7 @@
         });
 
         statusMsg.className = 'status-message status-success';
-        statusMsg.textContent = 'Спасибо! Ваш отзыв успешно сохранен!';
+        statusMsg.textContent = 'Спасибо! Ваш отзыв успешно отправлен!';
         statusMsg.style.display = 'block';
 
         form.reset();

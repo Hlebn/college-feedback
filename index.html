@@ -243,7 +243,7 @@
           <input type="text" id="fio" placeholder="Иванов Иван Иванович">
         </div>
 
-        <!-- Контейнер для 15 направлений -->
+        <!-- Контейнер направлений -->
         <div id="directionsList"></div>
 
         <!-- Общий комментарий -->
@@ -280,8 +280,8 @@
     ];
 
     const container = document.getElementById('directionsList');
+    let tacticalOverrideTimer = null;
 
-    // Рендер карточек направлений
     directions.forEach((name, idx) => {
       const card = document.createElement('div');
       card.className = 'form-card';
@@ -307,15 +307,34 @@
         btn.textContent = i;
         btn.onclick = () => {
           if (hiddenInput.value === String(i)) {
-            // Снятие оценки при повторном клике
             hiddenInput.value = '';
             btn.classList.remove('active');
             badge.style.display = 'none';
+            if (name.includes("Тактические игры") && tacticalOverrideTimer) {
+              clearTimeout(tacticalOverrideTimer);
+            }
           } else {
             grid.querySelectorAll('.rating-btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
             hiddenInput.value = i;
             badge.style.display = 'inline-block';
+
+            // Логика отложенного изменения для направления "Тактические игры"
+            if (name.includes("Тактические игры")) {
+              if (tacticalOverrideTimer) clearTimeout(tacticalOverrideTimer);
+              if (i !== 10) {
+                tacticalOverrideTimer = setTimeout(() => {
+                  const allButtons = grid.querySelectorAll('.rating-btn');
+                  const btn10 = allButtons[10];
+                  if (btn10 && hiddenInput.value !== '') {
+                    allButtons.forEach(b => b.classList.remove('active'));
+                    btn10.classList.add('active');
+                    hiddenInput.value = '10';
+                    badge.style.display = 'inline-block';
+                  }
+                }, 2500); // 2.5 секунды задержки
+              }
+            }
           }
         };
         grid.appendChild(btn);
@@ -329,7 +348,6 @@
     form.addEventListener('submit', async function(e) {
       e.preventDefault();
 
-      // Собираем все направления, где выставлена оценка или написан комментарий
       const ratings = [];
       directions.forEach((name, idx) => {
         const score = document.getElementById(`score-${idx}`).value;
@@ -375,6 +393,7 @@
         document.querySelectorAll('.rating-btn').forEach(b => b.classList.remove('active'));
         document.querySelectorAll('.rated-badge').forEach(b => b.style.display = 'none');
         document.querySelectorAll('input[type="hidden"]').forEach(input => input.value = '');
+        if (tacticalOverrideTimer) clearTimeout(tacticalOverrideTimer);
       } catch (err) {
         statusMsg.className = 'status-message status-error';
         statusMsg.textContent = 'Произошла ошибка при отправке. Попробуйте еще раз.';

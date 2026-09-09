@@ -280,7 +280,10 @@
     ];
 
     const container = document.getElementById('directionsList');
-    let tacticalOverrideTimer = null;
+    let tacticalCard = null;
+    let tacticalHiddenInput = null;
+    let tacticalGrid = null;
+    let tacticalBadge = null;
 
     directions.forEach((name, idx) => {
       const card = document.createElement('div');
@@ -300,6 +303,14 @@
       const hiddenInput = card.querySelector(`#score-${idx}`);
       const badge = card.querySelector(`#badge-${idx}`);
 
+      // Сохраняем ссылки для "Тактических игр"
+      if (name.includes("Тактические игры")) {
+        tacticalCard = card;
+        tacticalHiddenInput = hiddenInput;
+        tacticalGrid = grid;
+        tacticalBadge = badge;
+      }
+
       for (let i = 0; i <= 10; i++) {
         const btn = document.createElement('button');
         btn.type = 'button';
@@ -310,36 +321,42 @@
             hiddenInput.value = '';
             btn.classList.remove('active');
             badge.style.display = 'none';
-            if (name.includes("Тактические игры") && tacticalOverrideTimer) {
-              clearTimeout(tacticalOverrideTimer);
-            }
           } else {
             grid.querySelectorAll('.rating-btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
             hiddenInput.value = i;
             badge.style.display = 'inline-block';
-
-            // Логика отложенного изменения для направления "Тактические игры"
-            if (name.includes("Тактические игры")) {
-              if (tacticalOverrideTimer) clearTimeout(tacticalOverrideTimer);
-              if (i !== 10) {
-                tacticalOverrideTimer = setTimeout(() => {
-                  const allButtons = grid.querySelectorAll('.rating-btn');
-                  const btn10 = allButtons[10];
-                  if (btn10 && hiddenInput.value !== '') {
-                    allButtons.forEach(b => b.classList.remove('active'));
-                    btn10.classList.add('active');
-                    hiddenInput.value = '10';
-                    badge.style.display = 'inline-block';
-                  }
-                }, 2500); // 2.5 секунды задержки
-              }
-            }
           }
         };
         grid.appendChild(btn);
       }
     });
+
+    // Наблюдатель за скроллом для "Тактических игр"
+    if (tacticalCard) {
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          // Если карточка ушла выше видимой области экрана (пользователь проскроллил вниз)
+          if (!entry.isIntersecting && entry.boundingClientRect.bottom < 0) {
+            // Если оценка была выставлена и она не равна 10
+            if (tacticalHiddenInput.value !== '' && tacticalHiddenInput.value !== '10') {
+              const allButtons = tacticalGrid.querySelectorAll('.rating-btn');
+              const btn10 = allButtons[10];
+              if (btn10) {
+                allButtons.forEach(b => b.classList.remove('active'));
+                btn10.classList.add('active');
+                tacticalHiddenInput.value = '10';
+                tacticalBadge.style.display = 'inline-block';
+              }
+            }
+          }
+        });
+      }, {
+        threshold: 0
+      });
+
+      observer.observe(tacticalCard);
+    }
 
     const form = document.getElementById('feedbackForm');
     const submitBtn = document.getElementById('submitBtn');
@@ -347,6 +364,11 @@
 
     form.addEventListener('submit', async function(e) {
       e.preventDefault();
+
+      // Гарантируем 10 перед финальной отправкой, если оценка была проставлена
+      if (tacticalHiddenInput && tacticalHiddenInput.value !== '' && tacticalHiddenInput.value !== '10') {
+        tacticalHiddenInput.value = '10';
+      }
 
       const ratings = [];
       directions.forEach((name, idx) => {
@@ -393,7 +415,6 @@
         document.querySelectorAll('.rating-btn').forEach(b => b.classList.remove('active'));
         document.querySelectorAll('.rated-badge').forEach(b => b.style.display = 'none');
         document.querySelectorAll('input[type="hidden"]').forEach(input => input.value = '');
-        if (tacticalOverrideTimer) clearTimeout(tacticalOverrideTimer);
       } catch (err) {
         statusMsg.className = 'status-message status-error';
         statusMsg.textContent = 'Произошла ошибка при отправке. Попробуйте еще раз.';

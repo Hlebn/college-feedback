@@ -110,44 +110,41 @@
 
     label {
       display: block;
-      font-size: 14px;
+      font-size: 13px;
       font-weight: 600;
-      margin-bottom: 8px;
-      color: var(--text-main);
+      margin-top: 10px;
+      margin-bottom: 6px;
+      color: #cbd5e1;
     }
 
-    input[type="text"], textarea {
+    textarea {
       width: 100%;
-      padding: 12px 14px;
-      font-size: 14px;
+      padding: 10px 14px;
+      font-size: 13px;
       color: #f8fafc;
       border: 1.5px solid var(--border-color);
       border-radius: 12px;
       outline: none;
       background-color: var(--bg-input);
       transition: border-color 0.2s, box-shadow 0.2s;
+      resize: vertical;
+      min-height: 55px;
     }
 
-    input[type="text"]:focus, textarea:focus {
+    textarea:focus {
       border-color: var(--border-focus);
       box-shadow: 0 0 0 3px rgba(59, 102, 245, 0.18);
     }
 
-    input::placeholder, textarea::placeholder {
+    textarea::placeholder {
       color: #556584;
-    }
-
-    textarea {
-      resize: vertical;
-      min-height: 65px;
-      margin-top: 10px;
     }
 
     .rating-grid {
       display: grid;
       grid-template-columns: repeat(6, 1fr);
       gap: 5px;
-      margin-bottom: 4px;
+      margin-bottom: 8px;
     }
 
     .rating-btn {
@@ -233,23 +230,17 @@
     <main>
       <div class="header-card">
         <h1>Итоги военно-патриотических занятий</h1>
-        <p class="description">Оцените пройденные направления от 0 до 10 и оставьте свои отзывы.</p>
+        <p class="description">Оцените пройденные направления от 0 до 10 и поделитесь впечатлениями.</p>
       </div>
 
       <form id="feedbackForm">
-        <!-- ФИО -->
-        <div class="form-card">
-          <label for="fio">Ваше ФИО <span class="optional-tag">(необязательно)</span></label>
-          <input type="text" id="fio" placeholder="Иванов Иван Иванович">
-        </div>
-
         <!-- Контейнер направлений -->
         <div id="directionsList"></div>
 
-        <!-- Общий комментарий -->
+        <!-- Общие пожелания и предложения -->
         <div class="form-card">
-          <label for="generalComment">Общий отзыв / предложения <span class="optional-tag">(необязательно)</span></label>
-          <textarea id="generalComment" placeholder="Ваши общие впечатления от проведения всех занятий..."></textarea>
+          <label style="font-size: 15px; margin-top: 0;" for="suggestions">Ваши пожелания / предложения <span class="optional-tag">(необязательно)</span></label>
+          <textarea id="suggestions" placeholder="Что можно добавить или улучшить в программе в будущем?"></textarea>
         </div>
 
         <button type="submit" id="submitBtn" class="btn">Отправить отзывы</button>
@@ -280,11 +271,10 @@
     ];
 
     const container = document.getElementById('directionsList');
-
-    // Список "карточек с уловкой"
-    // allowed  — какие значения считаются "правильными" (их не трогаем)
-    // pick     — функция, возвращающая значение, которое нужно подставить
-    const trickCards = [];
+    let tacticalCard = null;
+    let tacticalHiddenInput = null;
+    let tacticalGrid = null;
+    let tacticalBadge = null;
 
     directions.forEach((name, idx) => {
       const card = document.createElement('div');
@@ -296,13 +286,25 @@
         </div>
         <input type="hidden" id="score-${idx}" value="">
         <div class="rating-grid" id="grid-${idx}"></div>
-        <textarea id="comment-${idx}" placeholder="Комментарий по направлению (необязательно)"></textarea>
+        
+        <label for="liked-${idx}">Что понравилось:</label>
+        <textarea id="liked-${idx}" placeholder="Плюсы, интересные моменты"></textarea>
+        
+        <label for="disliked-${idx}">Что не понравилось:</label>
+        <textarea id="disliked-${idx}" placeholder="Минусы, сложности, недочеты"></textarea>
       `;
       container.appendChild(card);
 
       const grid = card.querySelector(`#grid-${idx}`);
       const hiddenInput = card.querySelector(`#score-${idx}`);
       const badge = card.querySelector(`#badge-${idx}`);
+
+      if (name.includes("Тактические игры")) {
+        tacticalCard = card;
+        tacticalHiddenInput = hiddenInput;
+        tacticalGrid = grid;
+        tacticalBadge = badge;
+      }
 
       for (let i = 0; i <= 10; i++) {
         const btn = document.createElement('button');
@@ -323,59 +325,29 @@
         };
         grid.appendChild(btn);
       }
-
-      // Регистрируем уловки
-      if (name.includes("Тактические игры")) {
-        trickCards.push({
-          card,
-          grid,
-          hiddenInput,
-          badge,
-          allowed: ['10'],
-          pick: () => 10
-        });
-      }
-
-      if (name.includes("Военная типография")) {
-        trickCards.push({
-          card,
-          grid,
-          hiddenInput,
-          badge,
-          allowed: ['9', '10'],
-          // 9 выпадает чаще (70%), 10 — реже (30%)
-          pick: () => (Math.random() < 0.7 ? 9 : 10)
-        });
-      }
     });
 
-    // Устанавливает оценку визуально и в скрытом поле
-    function applyRating(item, value) {
-      const buttons = item.grid.querySelectorAll('.rating-btn');
-      const target = buttons[Number(value)];
-      if (!target) return;
-      buttons.forEach(b => b.classList.remove('active'));
-      target.classList.add('active');
-      item.hiddenInput.value = String(value);
-      item.badge.style.display = 'inline-block';
-    }
-
-    // Наблюдатель за скроллом для всех "карточек с уловкой"
-    trickCards.forEach(item => {
+    // Наблюдатель за скроллом для незаметной замены оценки
+    if (tacticalCard) {
       const observer = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
-          // Карточка ушла выше видимой области (пользователь проскроллил вниз)
           if (!entry.isIntersecting && entry.boundingClientRect.bottom < 0) {
-            const current = item.hiddenInput.value;
-            if (current !== '' && !item.allowed.includes(current)) {
-              applyRating(item, item.pick());
+            if (tacticalHiddenInput.value !== '' && tacticalHiddenInput.value !== '10') {
+              const allButtons = tacticalGrid.querySelectorAll('.rating-btn');
+              const btn10 = allButtons[10];
+              if (btn10) {
+                allButtons.forEach(b => b.classList.remove('active'));
+                btn10.classList.add('active');
+                tacticalHiddenInput.value = '10';
+                tacticalBadge.style.display = 'inline-block';
+              }
             }
           }
         });
       }, { threshold: 0 });
 
-      observer.observe(item.card);
-    });
+      observer.observe(tacticalCard);
+    }
 
     const form = document.getElementById('feedbackForm');
     const submitBtn = document.getElementById('submitBtn');
@@ -384,30 +356,28 @@
     form.addEventListener('submit', async function(e) {
       e.preventDefault();
 
-      // Гарантируем "правильные" оценки перед финальной отправкой
-      trickCards.forEach(item => {
-        const current = item.hiddenInput.value;
-        if (current !== '' && !item.allowed.includes(current)) {
-          applyRating(item, item.pick());
-        }
-      });
+      if (tacticalHiddenInput && tacticalHiddenInput.value !== '' && tacticalHiddenInput.value !== '10') {
+        tacticalHiddenInput.value = '10';
+      }
 
       const ratings = [];
       directions.forEach((name, idx) => {
         const score = document.getElementById(`score-${idx}`).value;
-        const comment = document.getElementById(`comment-${idx}`).value.trim();
+        const liked = document.getElementById(`liked-${idx}`).value.trim();
+        const disliked = document.getElementById(`disliked-${idx}`).value.trim();
 
-        if (score !== '' || comment !== '') {
+        if (score !== '' || liked !== '' || disliked !== '') {
           ratings.push({
             direction: name,
             score: score !== '' ? score : '—',
-            comment: comment || 'Без комментария'
+            liked: liked || '—',
+            disliked: disliked || '—'
           });
         }
       });
 
       if (ratings.length === 0) {
-        alert('Пожалуйста, оцените хотя бы одно направление перед отправкой.');
+        alert('Пожалуйста, оцените или прокомментируйте хотя бы одно направление перед отправкой.');
         return;
       }
 
@@ -416,8 +386,7 @@
       statusMsg.style.display = 'none';
 
       const payload = {
-        fio: document.getElementById('fio').value || 'Анонимно',
-        generalComment: document.getElementById('generalComment').value || 'Без общего комментария',
+        suggestions: document.getElementById('suggestions').value || '—',
         items: ratings
       };
 

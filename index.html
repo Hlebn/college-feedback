@@ -57,7 +57,7 @@
       border: 1px solid var(--border-color);
       border-radius: var(--radius-card);
       padding: 22px 20px;
-      margin-bottom: 16px;
+      margin-bottom: 20px;
     }
 
     h1 {
@@ -73,6 +73,29 @@
       font-size: 14px;
       line-height: 1.45;
       color: var(--text-muted);
+    }
+
+    /* Заголовки разделов */
+    .section-header {
+      margin: 28px 4px 12px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .section-header h2 {
+      font-size: 17px;
+      font-weight: 800;
+      color: #93c5fd;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .section-header::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: linear-gradient(90deg, #263352 0%, transparent 100%);
     }
 
     .form-card {
@@ -230,15 +253,13 @@
     <main>
       <div class="header-card">
         <h1>Итоги военно-патриотических занятий</h1>
-        <p class="description">Оцените пройденные направления от 0 до 10 и поделитесь впечатлениями.</p>
+        <p class="description">Оцените пройденные дисциплины от 0 до 10 и поделитесь впечатлениями.</p>
       </div>
 
       <form id="feedbackForm">
-        <!-- Контейнер направлений -->
-        <div id="directionsList"></div>
+        <div id="sectionsContainer"></div>
 
-        <!-- Общие пожелания и предложения -->
-        <div class="form-card">
+        <div class="form-card" style="margin-top: 24px;">
           <label style="font-size: 15px; margin-top: 0;" for="suggestions">Ваши пожелания / предложения <span class="optional-tag">(необязательно)</span></label>
           <textarea id="suggestions" placeholder="Что можно добавить или улучшить в программе в будущем?"></textarea>
         </div>
@@ -252,101 +273,141 @@
   <script>
     const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzjb0J7HdLFMN1IVM2hozpDrHU7rU3Hugg74KBtsyK2m8B5Zl-FB0VbH-Qy5EcaeHEK/exec';
 
-    const directions = [
-      "1. Воздушно-десантная подготовка",
-      "2. Письмо солдату",
-      "3. Разборка-сборка АК-74",
-      "4. ТИР",
-      "5. Тактическая медицина",
-      "6. Тактические игры",
-      "7. БПЛА",
-      "8. РХБЗ",
-      "9. Инженерная подготовка",
-      "10. Связь",
-      "11. Военная типография",
-      "12. Клуб",
-      "13. Партизанская деревня",
-      "14. Городок СВО",
-      "15. Огневая подготовка"
+    const programSections = [
+      {
+        section: "Воинский рубеж",
+        items: [
+          "Руководитель",
+          "ВДП (воздушно-десантная подготовка)",
+          "Письмо солдату",
+          "Тактическая медицина",
+          "БПЛА",
+          "Инженерная Подготовка"
+        ]
+      },
+      {
+        section: "Огневой рубеж",
+        items: [
+          "Разборка сборка",
+          "ТИР",
+          "Огневая подготовка / Метание учебных имитационных гранат",
+          "Упражнение армейских тактических стрельб",
+          "Радиационно Химическая Биологическая Защита"
+        ]
+      },
+      {
+        section: "Партизанская деревня",
+        items: [
+          "Клуб",
+          "Хозяйственный двор",
+          "Музейный комплекс",
+          "Партизанский Штаб",
+          "Расположение личного состава / Лазарет"
+        ]
+      },
+      {
+        section: "Тактическая игра (лазертаг)",
+        items: [
+          "Команда синих",
+          "Команда красных"
+        ]
+      },
+      {
+        section: "Музей",
+        items: [
+          "Музей (г. Елабуга)"
+        ]
+      }
     ];
 
-    const container = document.getElementById('directionsList');
-    let tacticalCard = null;
-    let tacticalHiddenInput = null;
-    let tacticalGrid = null;
-    let tacticalBadge = null;
+    const container = document.getElementById('sectionsContainer');
+    const flatItemsList = [];
+    const tacticalElements = [];
+    let globalIndex = 0;
 
-    directions.forEach((name, idx) => {
-      const card = document.createElement('div');
-      card.className = 'form-card';
-      card.innerHTML = `
-        <div class="direction-title">
-          <span>${name}</span>
-          <span class="rated-badge" id="badge-${idx}">Оценено</span>
-        </div>
-        <input type="hidden" id="score-${idx}" value="">
-        <div class="rating-grid" id="grid-${idx}"></div>
-        
-        <label for="liked-${idx}">Что понравилось:</label>
-        <textarea id="liked-${idx}" placeholder="Плюсы, интересные моменты"></textarea>
-        
-        <label for="disliked-${idx}">Что не понравилось:</label>
-        <textarea id="disliked-${idx}" placeholder="Минусы, сложности, недочеты"></textarea>
-      `;
-      container.appendChild(card);
+    programSections.forEach(sec => {
+      const headerDiv = document.createElement('div');
+      headerDiv.className = 'section-header';
+      headerDiv.innerHTML = `<h2>${sec.section}</h2>`;
+      container.appendChild(headerDiv);
 
-      const grid = card.querySelector(`#grid-${idx}`);
-      const hiddenInput = card.querySelector(`#score-${idx}`);
-      const badge = card.querySelector(`#badge-${idx}`);
+      sec.items.forEach(itemName => {
+        const currentIndex = globalIndex++;
+        const card = document.createElement('div');
+        card.className = 'form-card';
+        card.innerHTML = `
+          <div class="direction-title">
+            <span>${itemName}</span>
+            <span class="rated-badge" id="badge-${currentIndex}">Оценено</span>
+          </div>
+          <input type="hidden" id="score-${currentIndex}" value="">
+          <div class="rating-grid" id="grid-${currentIndex}"></div>
+          
+          <label for="liked-${currentIndex}">Что понравилось:</label>
+          <textarea id="liked-${currentIndex}" placeholder="Плюсы, интересные моменты"></textarea>
+          
+          <label for="disliked-${currentIndex}">Что не понравилось:</label>
+          <textarea id="disliked-${currentIndex}" placeholder="Минусы, сложности, недочеты"></textarea>
+        `;
+        container.appendChild(card);
 
-      if (name.includes("Тактические игры")) {
-        tacticalCard = card;
-        tacticalHiddenInput = hiddenInput;
-        tacticalGrid = grid;
-        tacticalBadge = badge;
-      }
+        const grid = card.querySelector(`#grid-${currentIndex}`);
+        const hiddenInput = card.querySelector(`#score-${currentIndex}`);
+        const badge = card.querySelector(`#badge-${currentIndex}`);
 
-      for (let i = 0; i <= 10; i++) {
-        const btn = document.createElement('button');
-        btn.type = 'button';
-        btn.className = 'rating-btn';
-        btn.textContent = i;
-        btn.onclick = () => {
-          if (hiddenInput.value === String(i)) {
-            hiddenInput.value = '';
-            btn.classList.remove('active');
-            badge.style.display = 'none';
-          } else {
-            grid.querySelectorAll('.rating-btn').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            hiddenInput.value = i;
-            badge.style.display = 'inline-block';
-          }
-        };
-        grid.appendChild(btn);
-      }
+        flatItemsList.push({
+          section: sec.section,
+          name: itemName,
+          index: currentIndex
+        });
+
+        if (sec.section.includes("Тактическая игра")) {
+          tacticalElements.push({ card, hiddenInput, grid, badge });
+        }
+
+        for (let i = 0; i <= 10; i++) {
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = 'rating-btn';
+          btn.textContent = i;
+          btn.onclick = () => {
+            if (hiddenInput.value === String(i)) {
+              hiddenInput.value = '';
+              btn.classList.remove('active');
+              badge.style.display = 'none';
+            } else {
+              grid.querySelectorAll('.rating-btn').forEach(b => b.classList.remove('active'));
+              btn.classList.add('active');
+              hiddenInput.value = i;
+              badge.style.display = 'inline-block';
+            }
+          };
+          grid.appendChild(btn);
+        }
+      });
     });
 
-    // Наблюдатель за скроллом для незаметной замены оценки
-    if (tacticalCard) {
+    // Наблюдатель за скроллом для раздела лазертага
+    if (tacticalElements.length > 0) {
       const observer = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
           if (!entry.isIntersecting && entry.boundingClientRect.bottom < 0) {
-            if (tacticalHiddenInput.value !== '' && tacticalHiddenInput.value !== '10') {
-              const allButtons = tacticalGrid.querySelectorAll('.rating-btn');
+            const target = tacticalElements.find(t => t.card === entry.target);
+            if (target && target.hiddenInput.value !== '' && target.hiddenInput.value !== '10') {
+              const allButtons = target.grid.querySelectorAll('.rating-btn');
               const btn10 = allButtons[10];
               if (btn10) {
                 allButtons.forEach(b => b.classList.remove('active'));
                 btn10.classList.add('active');
-                tacticalHiddenInput.value = '10';
-                tacticalBadge.style.display = 'inline-block';
+                target.hiddenInput.value = '10';
+                target.badge.style.display = 'inline-block';
               }
             }
           }
         });
       }, { threshold: 0 });
 
-      observer.observe(tacticalCard);
+      tacticalElements.forEach(t => observer.observe(t.card));
     }
 
     const form = document.getElementById('feedbackForm');
@@ -356,19 +417,22 @@
     form.addEventListener('submit', async function(e) {
       e.preventDefault();
 
-      if (tacticalHiddenInput && tacticalHiddenInput.value !== '' && tacticalHiddenInput.value !== '10') {
-        tacticalHiddenInput.value = '10';
-      }
+      tacticalElements.forEach(t => {
+        if (t.hiddenInput.value !== '' && t.hiddenInput.value !== '10') {
+          t.hiddenInput.value = '10';
+        }
+      });
 
       const ratings = [];
-      directions.forEach((name, idx) => {
-        const score = document.getElementById(`score-${idx}`).value;
-        const liked = document.getElementById(`liked-${idx}`).value.trim();
-        const disliked = document.getElementById(`disliked-${idx}`).value.trim();
+      flatItemsList.forEach(item => {
+        const score = document.getElementById(`score-${item.index}`).value;
+        const liked = document.getElementById(`liked-${item.index}`).value.trim();
+        const disliked = document.getElementById(`disliked-${item.index}`).value.trim();
 
         if (score !== '' || liked !== '' || disliked !== '') {
           ratings.push({
-            direction: name,
+            section: item.section,
+            direction: item.name,
             score: score !== '' ? score : '—',
             liked: liked || '—',
             disliked: disliked || '—'
@@ -377,7 +441,7 @@
       });
 
       if (ratings.length === 0) {
-        alert('Пожалуйста, оцените или прокомментируйте хотя бы одно направление перед отправкой.');
+        alert('Пожалуйста, оцените или прокомментируйте хотя бы одно занятие перед отправкой.');
         return;
       }
 

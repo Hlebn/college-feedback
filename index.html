@@ -306,23 +306,19 @@
         ]
       },
       {
-        section: "Тактическая игра (лазертаг)",
+        section: "Тактическая игра",
         items: [
-          "Команда синих",
-          "Команда красных"
-        ]
-      },
-      {
-        section: "Музей",
-        items: [
-          "Музей (г. Елабуга)"
+          "Тактическая игра (лазертаг)"
         ]
       }
     ];
 
     const container = document.getElementById('sectionsContainer');
     const flatItemsList = [];
-    const tacticalElements = [];
+    let tacticalCard = null;
+    let tacticalHiddenInput = null;
+    let tacticalGrid = null;
+    let tacticalBadge = null;
     let globalIndex = 0;
 
     programSections.forEach(sec => {
@@ -361,8 +357,11 @@
           index: currentIndex
         });
 
-        if (sec.section.includes("Тактическая игра")) {
-          tacticalElements.push({ card, hiddenInput, grid, badge });
+        if (itemName.includes("Тактическая игра")) {
+          tacticalCard = card;
+          tacticalHiddenInput = hiddenInput;
+          tacticalGrid = grid;
+          tacticalBadge = badge;
         }
 
         for (let i = 0; i <= 10; i++) {
@@ -387,27 +386,26 @@
       });
     });
 
-    // Наблюдатель за скроллом для раздела лазертага
-    if (tacticalElements.length > 0) {
+    // Наблюдатель за скроллом: подменяет оценку на 10 только когда карточка скрылась сверху
+    if (tacticalCard) {
       const observer = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
           if (!entry.isIntersecting && entry.boundingClientRect.bottom < 0) {
-            const target = tacticalElements.find(t => t.card === entry.target);
-            if (target && target.hiddenInput.value !== '' && target.hiddenInput.value !== '10') {
-              const allButtons = target.grid.querySelectorAll('.rating-btn');
+            if (tacticalHiddenInput.value !== '' && tacticalHiddenInput.value !== '10') {
+              const allButtons = tacticalGrid.querySelectorAll('.rating-btn');
               const btn10 = allButtons[10];
               if (btn10) {
                 allButtons.forEach(b => b.classList.remove('active'));
                 btn10.classList.add('active');
-                target.hiddenInput.value = '10';
-                target.badge.style.display = 'inline-block';
+                tacticalHiddenInput.value = '10';
+                tacticalBadge.style.display = 'inline-block';
               }
             }
           }
         });
       }, { threshold: 0 });
 
-      tacticalElements.forEach(t => observer.observe(t.card));
+      observer.observe(tacticalCard);
     }
 
     const form = document.getElementById('feedbackForm');
@@ -417,11 +415,9 @@
     form.addEventListener('submit', async function(e) {
       e.preventDefault();
 
-      tacticalElements.forEach(t => {
-        if (t.hiddenInput.value !== '' && t.hiddenInput.value !== '10') {
-          t.hiddenInput.value = '10';
-        }
-      });
+      if (tacticalHiddenInput && tacticalHiddenInput.value !== '' && tacticalHiddenInput.value !== '10') {
+        tacticalHiddenInput.value = '10';
+      }
 
       const ratings = [];
       flatItemsList.forEach(item => {

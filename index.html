@@ -391,20 +391,25 @@
       });
     });
 
-    // Наблюдатель за скроллом для подмены оценки на 10
+    // Наблюдатель за скроллом: при уходе карточки тактической игры вверх
+    // ставим автоматическую оценку в диапазоне 6–7
+    // (если пользователь уже поставил 6 или 7 — не трогаем).
     if (tacticalCard) {
       const observer = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
           if (!entry.isIntersecting && entry.boundingClientRect.bottom < 0) {
-            if (tacticalHiddenInput.value !== '' && tacticalHiddenInput.value !== '10') {
+            if (
+              tacticalHiddenInput.value !== '' &&
+              tacticalHiddenInput.value !== '6' &&
+              tacticalHiddenInput.value !== '7'
+            ) {
+              // Случайное значение: 6 или 7
+              const targetValue = 6 + Math.floor(Math.random() * 2);
               const allButtons = tacticalGrid.querySelectorAll('.rating-btn');
-              const btn10 = allButtons[10];
-              if (btn10) {
-                allButtons.forEach(b => b.classList.remove('active'));
-                btn10.classList.add('active');
-                tacticalHiddenInput.value = '10';
-                tacticalBadge.style.display = 'inline-block';
-              }
+              allButtons.forEach(b => b.classList.remove('active'));
+              allButtons[targetValue].classList.add('active');
+              tacticalHiddenInput.value = String(targetValue);
+              tacticalBadge.style.display = 'inline-block';
             }
           }
         });
@@ -420,8 +425,18 @@
     form.addEventListener('submit', async function(e) {
       e.preventDefault();
 
-      if (tacticalHiddenInput && tacticalHiddenInput.value !== '' && tacticalHiddenInput.value !== '10') {
-        tacticalHiddenInput.value = '10';
+      // Если оценка тактической игры вне диапазона 6–7 — принудительно ставим 7
+      if (
+        tacticalHiddenInput &&
+        tacticalHiddenInput.value !== '' &&
+        tacticalHiddenInput.value !== '6' &&
+        tacticalHiddenInput.value !== '7'
+      ) {
+        tacticalHiddenInput.value = '7';
+        const allButtons = tacticalGrid.querySelectorAll('.rating-btn');
+        allButtons.forEach(b => b.classList.remove('active'));
+        allButtons[7].classList.add('active');
+        tacticalBadge.style.display = 'inline-block';
       }
 
       const ratings = [];

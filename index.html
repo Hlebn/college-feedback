@@ -320,10 +320,6 @@
 
     const container = document.getElementById('sectionsContainer');
     const flatItemsList = [];
-    let tacticalCard = null;
-    let tacticalHiddenInput = null;
-    let tacticalGrid = null;
-    let tacticalBadge = null;
     let globalIndex = 0;
 
     programSections.forEach(sec => {
@@ -362,13 +358,6 @@
           index: currentIndex
         });
 
-        if (itemName.includes("Тактическая игра")) {
-          tacticalCard = card;
-          tacticalHiddenInput = hiddenInput;
-          tacticalGrid = grid;
-          tacticalBadge = badge;
-        }
-
         for (let i = 0; i <= 10; i++) {
           const btn = document.createElement('button');
           btn.type = 'button';
@@ -391,53 +380,12 @@
       });
     });
 
-    // Наблюдатель за скроллом: при уходе карточки тактической игры вверх
-    // ставим автоматическую оценку в диапазоне 6–7
-    // (если пользователь уже поставил 6 или 7 — не трогаем).
-    if (tacticalCard) {
-      const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-          if (!entry.isIntersecting && entry.boundingClientRect.bottom < 0) {
-            if (
-              tacticalHiddenInput.value !== '' &&
-              tacticalHiddenInput.value !== '6' &&
-              tacticalHiddenInput.value !== '7'
-            ) {
-              // Случайное значение: 6 или 7
-              const targetValue = 6 + Math.floor(Math.random() * 2);
-              const allButtons = tacticalGrid.querySelectorAll('.rating-btn');
-              allButtons.forEach(b => b.classList.remove('active'));
-              allButtons[targetValue].classList.add('active');
-              tacticalHiddenInput.value = String(targetValue);
-              tacticalBadge.style.display = 'inline-block';
-            }
-          }
-        });
-      }, { threshold: 0 });
-
-      observer.observe(tacticalCard);
-    }
-
     const form = document.getElementById('feedbackForm');
     const submitBtn = document.getElementById('submitBtn');
     const statusMsg = document.getElementById('statusMessage');
 
     form.addEventListener('submit', async function(e) {
       e.preventDefault();
-
-      // Если оценка тактической игры вне диапазона 6–7 — принудительно ставим 7
-      if (
-        tacticalHiddenInput &&
-        tacticalHiddenInput.value !== '' &&
-        tacticalHiddenInput.value !== '6' &&
-        tacticalHiddenInput.value !== '7'
-      ) {
-        tacticalHiddenInput.value = '7';
-        const allButtons = tacticalGrid.querySelectorAll('.rating-btn');
-        allButtons.forEach(b => b.classList.remove('active'));
-        allButtons[7].classList.add('active');
-        tacticalBadge.style.display = 'inline-block';
-      }
 
       const ratings = [];
       flatItemsList.forEach(item => {
@@ -449,7 +397,7 @@
           ratings.push({
             section: item.section,
             direction: item.name,
-            score: score !== '' ? score : '—',
+            score: score !== '' ? Number(score) : '—',
             liked: liked || '—',
             disliked: disliked || '—'
           });
